@@ -1,0 +1,56 @@
+This is BibTeX, Version 0.99d (TeX Live 2022/dev/Debian)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: DataBasedCosmicsTechNote.aux
+The style file: unsrturl.bst
+Reallocated glb_str_ptr (elt_size=4) to 20 items from 10.
+Reallocated global_strs (elt_size=200001) to 20 items from 10.
+Reallocated glb_str_end (elt_size=4) to 20 items from 10.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: DataBasedCosmicsTechNoteLiterature.bib
+Warning--entry type for "NOVA-doc-51327-v3" isn't style-file defined
+--line 3 of file DataBasedCosmicsTechNoteLiterature.bib
+Warning--entry type for "NOVA-doc-39244-v1" isn't style-file defined
+--line 12 of file DataBasedCosmicsTechNoteLiterature.bib
+You've used 3 entries,
+            2555 wiz_defined-function locations,
+            590 strings with 5093 characters,
+and the built_in function-call counts, 947 in all, are:
+= -- 93
+> -- 24
+< -- 0
++ -- 8
+- -- 5
+* -- 36
+:= -- 140
+add.period$ -- 12
+call.type$ -- 3
+change.case$ -- 3
+chr.to.int$ -- 0
+cite$ -- 3
+duplicate$ -- 23
+empty$ -- 116
+format.name$ -- 5
+if$ -- 272
+int.to.chr$ -- 0
+int.to.str$ -- 3
+missing$ -- 1
+newline$ -- 21
+num.names$ -- 3
+pop$ -- 26
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 0
+skip$ -- 80
+stack$ -- 0
+substring$ -- 18
+swap$ -- 5
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 0
+warning$ -- 0
+while$ -- 4
+width$ -- 4
+write$ -- 38
+(There were 2 warnings)
