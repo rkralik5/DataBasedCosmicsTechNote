@@ -88,8 +88,25 @@
   month        = apr,
   note         = {NOvA internal document},
   title        = {Data-based cosmics simulation for (not only) Test Beam calibration},
-  url          = {https://nova-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=15977},
-  year         = {2016},
+  url          = {https://nova-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=54417},
+  year         = {2022},
+}
+
+@Article{HEPEVTFormat,
+  author   = {Torbjörn Sjöstrand and Stephen Mrenna and Peter Skands},
+  journal  = {Journal of High Energy Physics},
+  title    = {PYTHIA 6.4 physics and manual},
+  year     = {2006},
+  month    = {may},
+  note     = {Section 5.4},
+  number   = {05},
+  pages    = {026},
+  volume   = {2006},
+  abstract = {The Pythia program can be used to generate high-energy-physics  `events', i.e. sets of outgoing particles produced in the interactions  between two incoming particles. The objective is to provide as accurate  as possible a representation of event properties in a wide range of  reactions, within and beyond the Standard Model, with emphasis on those  where strong interactions play a rôle, directly or indirectly, and  therefore multihadronic final states are produced. The physics is then  not understood well enough to give an exact description; instead the  program has to be based on a combination of analytical results and  various QCD-based models. This physics input is summarized here, for  areas such as hard subprocesses, initial- and final-state parton showers,  underlying events and beam remnants, fragmentation and decays, and much  more. Furthermore, extensive information is provided on all program  elements: subroutines and functions, switches and parameters, and particle  and process data. This should allow the user to tailor the generation task  to the topics of interest.
+
+The code and further information may be found on the Pythia  web page: http://www.thep.lu.se/~torbjorn/Pythia.html.},
+  doi      = {10.1088/1126-6708/2006/05/026},
+  url      = {https://dx.doi.org/10.1088/1126-6708/2006/05/026},
 }
 
 @Comment{jabref-meta: databaseType:bibtex;}

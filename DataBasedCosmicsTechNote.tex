@@ -50,9 +50,9 @@
 \begin{abstract}
 In NOvA we employ samples of stopping and through-going cosmic muons to calibrate our detectors. To validate the efficacy of this calibration procedure for both the simulated and real detectors, as well as to determine systematic uncertainties arising from calibration, we require a sample of simulated cosmic muons.
 
-Originally we used (or still use) the Cosmic-Ray Shower Generator (CRY) \cite{CRY} to create a large Monte-Carlo (MC) sample. This sample was passed throught the geant4-based \cite{GEANT4} simulation of the detector and underwent the same cosmic muon selection process as the actual data. However, the CRY simulation proved to be highly inefficient, with only a small fraction of the simulated cosmic-ray activity resulting in selected calibration hits, and the majority of particles failing to even hit the detector. This inefficiency consumed significant CPU resources, disk space, and file usage. Moreover, the momentum and angle distributions in CRY were not well suited to the NOvA sites, potentially impacting the calibration accuracy.
+Originally we used (or still use) the Cosmic-Ray Shower Generator (CRY) \cite{CRY} to create a large Monte-Carlo (MC) cosmic ray sample. However, the CRY simulation proved to be highly inefficient, with only a small fraction of the simulated cosmic-ray activity resulting in selected calibration hits, and the majority of particles failing to even hit the detector. This inefficiency consumed significant CPU resources, disk space, and file usage. Moreover, the momentum and angle distributions in CRY were not well suited to the NOvA sites, potentially impacting the calibration accuracy.
 
-To overcome these challenges, we have implemented a data-based simulation method that eliminates the need for the CRY MC generator. Instead, the data-driven activity trigger (DDActivity) artdaq-stage data files are passed through the beam removal filter, reconstruction chain and selection of high-quality cosmic muons, before being used in the \texttt{"Text File Generator"} simulation.
+To overcome these challenges, we have implemented a data-based simulation method that eliminates the need for the CRY MC generator. Instead, we use the data-driven activity trigger (DDActivity) data sample, which is passed through the beam removal filter, reconstruction chain and a selection of high-quality cosmic muons. The selected cosmic ray muon events are then being used in the \texttt{"Text File Generator"} simulation to create an equivalent cosmic ray sample.
 
 This approach results in near-perfect efficiency, ensuring that almost every simulated muon contributes to the final calibration sample, thus saving processing time, file size, and storage. Additionally, the simulated muon distributions are inherently consistent with the data. Given that the calibration chain itself is a time and CPU intensive process, the reduction in simulation files and their sizes has significant benefits downstream of the file generation.
 \end{abstract}
@@ -65,19 +65,25 @@ The data-based simulation of cosmic muons was initially developed by Teresa Lack
 
 To address these disparities, Robert made improvements to the simulation throughout 2022, ultimately completing it in 2023. The enhancements involved modifications to event selection, charge assignment and energy correction of the through-going muons. The revised simulation was then employed and tested during the calibration of the Test Beam detector in 2023.
 
-This technical note provides an explanation of the process to create simulation samples for calibration, with a primary focus on its application in Test Beam. However, the approach and underlying code have been designed to be easily adaptable for use with the Near and Far detectors, as well as to generate simulated samples of cosmic muons for purposes other than calibration.
+This technical note provides an explanation of the process to create simulation samples for calibration, with a primary focus on its application in Test Beam. However, the approach and underlying code have been designed to be easily adaptable for use for the Near and Far detectors, as well as to generate simulated samples of cosmic muons for purposes other than calibration.
 
 \section{How does it work?}
 
 All the code required to generate data-based simulations of cosmic muons is located within the novasoft \texttt{CosmicStudies} package.
 
-The process of generating a new data-based simulation begins with an artdaq-stage data sample containing information on Raw Digits hits. These events undergo a series of filtering, reconstruction, and selection steps to obtain the vertex positions and 4-momenta of cosmic muons. The \texttt{cosmicgenanajob} ART job generates a ROOT file with a TTree containing all the necessary information, as outlined in section \ref{secCosmicGenAna} of this document.
+The process of generating a new data-based simulation begins with a data sample containing information on \texttt{Raw Digits} hits. For Test Beam we use the artdaq-stage DDActivity samples, but the pid-stage samples should also contain all the necessary information. Pre-staging this sample can be the most time-consuming part of the data-based simulation process, so it is advised to select a data sample that is either already cached or that can be easily pre-staged. Section \ref{secNumEvents} provides insights into estimating the required data volume.
 
-Subsequently, the reconstructed information for each event is processed by a Python script \texttt{GenerateHEPEVTFromROOT.py}. This script corrects the 4-momenta of the through-going muons to account for the missing energy that was not deposited in the detector. Furthemore, it assigns a charge to each cosmic muon based on a statistical distribution, smears the kinematic information to reduce bias from the input data and prints the \texttt{HEPEVT}-styled description of each event into a text file. The details of this process are elaborated in section \ref{secPython}. 
+It is necessary to choose a data sample that represents the detector in a fault-free state. For Test Beam, we use the full period 4 data sample, as other periods had issues such as faulty FEBs, underfilled cells, or similar complications. In the initial version of the data-based simulation, Teresa used the period 2 Test Beam data, as it was the only complete Test Beam data sample available. However, this data included the aforementioned effects, which could have had a non-trivial impact on the simulation.
 
-The text file is then passed to the \texttt{Text File Generator}, which employs the data information as seeds for the geant4-based detector simulation. By incorporating additional reconstruction steps, an artdaq-stage simulation sample of cosmic muons is generated. To create calibration samples for stopping and through-going cosmic muons, we apply the same reconstruction and selection criteria used for any data sample. Further details are provided in section \ref{secGenerator}. 
+%The first iteration also used Test Beam data from period 2 as an input, which include some FEB issues as well as underfilled cells 31 and 63 for all horizontal planes. This can negatively affect the resulting simulation in a non-trivial way. To avoid this for the second iteration, Robert used period 4 Test Beam data samples, which don't have the aforementioned effects. For details about the various conditions of the Test Beam detector and their effect on calibration and simulation see the Test Beam calibration technote (cite doc-db).
 
-A comprehensive outline of all the necessary steps is presented in the box below and can also be found on the \href{https://cdcvs.fnal.gov/redmine/projects/novaart/wiki/DataDriven\_Cosmics}{DataDriven Cosmics Generation redmine wiki page}.
+Once we have a selected data sample, we use the \texttt{cosmicgenanajob} ART job to apply a series of filtering, reconstruction, and selection steps to obtain a ROOT TTree with vertex positions and 4-momenta of selected good quality cosmic muon events. This is outlined in section \ref{secCosmicGenAna} of this document.
+
+Subsequently, the reconstructed information of each event is processed by a Python script \texttt{GenerateHEPEVTFromROOT.py}. This script corrects the 4-momenta of the through-going muons to account for the missing energy that was not deposited in the detector. Furthemore, it assigns a charge to each cosmic muon based on a statistical distribution, smears the kinematic information to reduce bias from the input data and prints the \texttt{HEPEVT}-styled \cite{HEPEVTFormat} description of each event into a text file. The details of this process are elaborated in section \ref{secPython}.
+
+The text file is then passed to the \texttt{Text File Generator}, which employs the information as a seed for a geant4-based \cite{GEANT4} detector simulation. By incorporating additional simulation and reconstruction steps, an artdaq-stage simulation sample of cosmic muons is generated. To create calibration samples for stopping and through-going cosmic muons, we apply the same reconstruction and selection criteria as for any data sample. Further details are provided in section \ref{secGenerator}. 
+
+A step-by-step summary is presented in the box below and can also be found on the \href{https://cdcvs.fnal.gov/redmine/projects/novaart/wiki/DataDriven\_Cosmics}{DataDriven Cosmics Generation redmine wiki page}.
 
 \vspace{5mm}
 \fcolorbox{black}[HTML]{E9F0E9}{
@@ -90,7 +96,7 @@ A comprehensive outline of all the necessary steps is presented in the box below
 \item Make a SAM definition from the FHiCL files with \texttt{sam\_add\_dataset};
 \item Include all the text files into \texttt{TextFileGen.cfg} with \texttt{--inputfile};
 \item Submit \texttt{TextFileGen.cfg};
-\item Move the newly created simulation artdaq files to a persistent area, declare them to SAM and create a definition 
+\item Move the newly created simulation artdaq files to a persistent area, declare them to SAM and create a definition;
 \item Generate the calibration files (pclist/pcliststop);
 \item Move the results into a persistent location, declare to SAM and make definitions.
 \end{enumerate}
@@ -98,24 +104,21 @@ A comprehensive outline of all the necessary steps is presented in the box below
 
 \subsection{Reconstruction and selection of cosmic muon events from data}\label{secCosmicGenAna}
 
-Our goal is to examine the response of the simulated detector to realistic cosmic muons found in real-life data. If the selection of reconstructed data does not accurately correspond to reality, either due to misreconstruction or incorrect selection criteria, it can introduce bias into our simulation. Additionally, we want the simulation to primarily consist of events that will be included in the final simulation calibration sample and can be effectively used in the calibration process. Therefore, it is crucial to employ a similar reconstruction approach to that used for the data and establish selection criteria that generate well-understood distributions resembling those of the data calibration samples.
+Our goal is to examine the response of the \textbf{simulated detector} to realistic cosmic muons found in the \textbf{real data}. We therefore need to use well-reconstructed and selected cosmic muons from data to generate our simulation. If the selection of the reconstructed data does not accurately correspond to reality, either due to misreconstruction or incorrect selection criteria, it can introduce bias into our simulation.
 
-The initial step is to choose an artdaq-stage data sample that represents the detector in a fault-free state. Pre-staging this data can be a time-consuming aspect of the data-based simulation process, so it is advisable to select a data sample that is either already pre-staged or can be easily pre-staged. Section \ref{secNumEvents} provides insights into estimating the required data volume.
+Additionally, we want the simulation to primarily consist of events that will make it into the final simulation calibration sample and reject those that will not. Therefore, it is useful to employ a similar reconstruction and selection process to that used to create the data calibration samples. We also require the distributions of the selected events to be well-understood and to resemble those of the data calibration samples.
 
-For Test Beam, we have opted for the full period 4 data sample, as other periods had issues such as faulty FEBs, underfilled cells, or similar complications. In the initial version of the data-based simulation, Teresa utilized the period 2 Test Beam data, as it was the only complete Test Beam data sample available. However, this data included the aforementioned effects, which could have a non-trivial impact on the simulation.
-
-%The aim of the new simulation sample is to understand the differences between the real and the simulated detector. However, the original information coming into the simulation (the seed) is supposed to represent real data as close as possible, without introducing any biases due to reconstruction or selection. 
-
-%What is the aim of the simulation? To simulate a sample of comsic muons with symmetric kinematic distributions alike data. But also not biased by data, we want the Geant4 to do it's job and tell us what does the simulation think our detector does to the cosmic muons.
-
-%We want to select well reconstructed cosmic muons out of the detector activity artdaq-stage data sample and perform reconstruction to get the required kinematic information for each event. We also want the resulting simulation to be as small as possible without influencing the calibration. This means the selection should remove all the events that wouldn't make it to the final selection for calibration samples.
-
-%The first iteration also used Test Beam data from period 2 as an input, which include some FEB issues as well as underfilled cells 31 and 63 for all horizontal planes. This can negatively affect the resulting simulation in a non-trivial way. To avoid this for the second iteration, Robert used period 4 Test Beam data samples, which don't have the aforementioned effects. For details about the various conditions of the Test Beam detector and their effect on calibration and simulation see the Test Beam calibration technote (cite doc-db).
-
-Once the data sample has been selected, we execute a single ART job located at \newline \texttt{CosmicStudies/cosmicgenanajob.fcl} to filter, reconstruct, and select the desired events, which are then written to a ROOT TTree.
+We use a single ART job located in \texttt{CosmicStudies/cosmicgenanajob.fcl} to filter, reconstruct, and select the desired events, which are then written to a ROOT TTree. The details of each step are decribed below.
 
 \subsubsection{Remove Beam Spills}
-The first step is to remove beam spill events using the \texttt{RemoveBeamSpills.fcl} job for the Near and Far Detectors, or \texttt{RemoveTBSpills.fcl} for the Test Beam detector, which should leave us with mostly cosmic events.
+The first step is to remove beam spill events using the \texttt{RemoveBeamSpills.fcl} job for the Near and Far Detectors, or \texttt{RemoveTBSpills.fcl} for the Test Beam detector. This is done based on the event time relative to the time of the beam spill. For Test Beam the beam spill is 4.2 seconds long and we remove all events within a 5 seconds window from the start of the beam spill, as shown on figure \ref{figRemoveTBSpills}. This should leave us with mostly cosmic events.
+
+\begin{figure}[hbtp]
+\centering
+\includegraphics[width=\textwidth]{RemoveTBSpills.pdf}
+\caption{Test Beam beam spill events removed (blue) from the calibration samples. The remaining events (green) should mostly consist of cosmic particles. This example and the numbers of entries are for the full period 4 Test Beam sample.}
+\label{figRemoveTBSpills}
+\end{figure}
 
 \subsubsection{Reconstruction}
 The \texttt{Text File Generator} requires the vertex position and the initial 4-momentum for each event. For that we use:
@@ -127,23 +130,50 @@ The \texttt{Text File Generator} requires the vertex position and the initial 4-
 \item \texttt{FuzzyKVertex} to cluster hits into prongs and
 \item \texttt{BreakPointFitter (BPF)} to identify muons (or muon-like tracks) and get their initial 4-momenta by fitting to the FuzzyK prongs and CosmicRayVertex vertices \cite{NOVA-doc-32455-v1}.
 \end{enumerate}
-The first three steps are identical to the full reconstruction applied to get the calibration samples. Since we do not need a 4-momentum information for calibration, we do not need to use the Break Point Fitter.
+The first three steps are identical to the full reconstruction applied to get the calibration samples. Since we do not need a 4-momentum information for calibration, we do not need to use Cosmic Ray Vertex, FuzzyK Vertex, or the Break Point Fitter to create calibration samples.
 
 \subsubsection{Selection}
-After the reconstruction process, we proceed to select events based on their slice and \textbf{BreakPointFitter (BPF) tracks} properties, saving them in a Root TTree. This step is done using the\\ \texttt{CosmicStudies/CosmicGenAna} module.
+After the reconstruction process, we proceed to select events based on their slice and \textbf{BreakPointFitter (BPF) track} properties, saving them in a Root TTree. This step is done using the\\ \texttt{CosmicStudies/CosmicGenAna} module.
 
-To select an event, the following conditions must be met (table \ref{tabSelection} provides an overview of all the cuts and their corresponding values):
+To select an event, the following conditions must be met (table \ref{tabSelection} provides an overview of all cuts and their corresponding values):
 \begin{enumerate}
 \item We only use successfully reconstructed 3D tracks with the muon assumption from the BreakPointFitter.
-\item As we aim to select cosmic events originating outside the detector, we apply a cut based on the distance of each track's start from the Top/Front/Back/Sides of the detector. This cut has a negligible impact on the BPF tracks, as indicated by the minimal difference between the red and blue lines in Figure \ref{figCosZSelectionComparison};
-\item We remove all events whose tracks are parallel to the beam direction. Figure \ref{figCosZSelectionComparison} demonstrates the presence of events peaked at track lengths of approximately $410$cm and $200$~cm, which correspond to the total and half length (length of one module) of the detector, respectively. These events are strictly parallel to the beam direction (cosine of angle from the z axis (Cos$_Z\sim 1$) and are likely remnants of beam events. Applying a cut on the CosZ of the initial track direction effectively removes these events without affecting the rest of the data.
-\item To ensure that only events contributing to the final calibration sample are simulated, we employ a selection based on cuts from the Calibration/PCHitsList module. The full "calibration sample" selection is applied to both data and simulation artdaq-stage samples to generate the \texttt{pclist} and \texttt{pcliststop} calibration samples. However, there are two caveats we need to consider:
+\item As we aim to select cosmic events originating outside the detector, we apply a cut based on the distance of each track's start from the Top/Front/Back/Sides of the detector. This cut has a negligible impact on the BPF tracks, as indicated by the minimal difference between the red and the dotted azure lines in Figure \ref{figCosZSelectionComparison};
+
+\begin{figure}[!ht]
+\subfloat{
+\includegraphics[clip, width=\textwidth]{SelectionComparisonCosZCut_CosY.pdf}
+}
+
+\subfloat{
+\includegraphics[clip, width=\textwidth]{SelectionComparisonCosZCut_TotLength.pdf}
+}
+\caption{Impact of track start and maximum track angle from the z axis (Cos$_Z$) cuts on the Test Beam data for the data-based simulation of cosmic muons. The track start cut has only negligible effect. The maximum Cos$_Z$ cut effectively removes sharp peaks in the total track length distribution and events perpendicular to the Y axis. These events are all parallel with the Z axes and are most likely leftover beam events. All of the distributions are made from the period 4 Test Beam data.}
+\label{figCosZSelectionComparison}
+\end{figure}
+
+\item We remove all events whose track is parallel to the beam direction. Figure \ref{figCosZSelectionComparison} demonstrates the presence of events peaked at track lengths of approximately $410$cm and $200$~cm, which correspond to the total and half length of the detector (or alternatively lengths of both modules and a single module), respectively. These events are strictly parallel to the beam direction, with track's angle from the Z axis $\sim0^{\circ}$ (Cos$_Z\sim 1$), and are likely remnants of beam events, or possibly from a Test Beam beam halo. Applying a cut on $|$Cos$_Z|> 0.98$ effectively removes these events without affecting the rest of the data. This cut might only be needed for Test Beam and not for the near and far detectors.
+\item To ensure that only events contributing to the final calibration sample are simulated, we use a selection based on cuts from the Calibration/PCHitsList module, which is used for both data and simulation to create the calibration samples. Let's call these cuts the \textbf{calibration cuts}. However, there are two caveats we need to consider:
 \begin{enumerate}
-\item First, for the calibration sample generation process, we utilize tracks from the Window cosmic track algorithm instead of the Break Point Fitter algorithm, which yield different distributions as depicted in Figure \ref{figTrackComparison}. Applying the full calibration sample selection on BPF tracks could mistakenly remove events that would pass the same selection when applied to the window cosmic tracks.
-\item Second, each reconstruction algorithm has intrinsic deficiencies that can lead to misreconstructions. Applying the full calibration sample selection may remove misreconstructed events that should have been included in the simulation, introducing a selection efficiency bias.
+\item First, to create calibration samples, we use tracks from the Window cosmic track algorithm instead of the Break Point Fitter algorithm, which yield different distributions as depicted in Figure \ref{figTrackComparison}. Applying the calibration cuts on BPF tracks could mistakenly remove events that would pass the same selection when applied to the window cosmic tracks.
+
+\begin{figure}[!ht]
+\centering
+\subfloat{
+\includegraphics[clip, width=\textwidth]{TrackAlgComparison_StartX.pdf}
+}
+\vspace*{-6mm}
+\subfloat{
+\includegraphics[clip, width=\textwidth]{TrackAlgComparison_CosZ.pdf}
+}
+\caption{Difference between the tracks reconstructed with the break point fitter (BPF - used for data-based simulation) and with the window cosmictrack (WT - used for generating the calibration samples) algorithms. Both distributions are for the period 4 Test Beam data (with removed beam spill) without applying any selection. The BPF tracks have a hard cut-off at the detector edges, whereas the WT tracks are allowed to start beyond these limits. Also, the BPF tracks have a ragged distribution in Cos$_Z$, which is not present for WT tracks. It is not yet known where does this raggedness come from.}
+\label{figTrackComparison}
+\end{figure}
+
+\item Second, each reconstruction algorithm has intrinsic deficiencies that can lead to misreconstructions. Applying the full calibration cuts may remove misreconstructed events that should have been included in the simulation, introducing a selection efficiency bias.
 \end{enumerate}
 
-To address these concerns, we have loosened the original calibration sample selection cuts to create a "buffer" around the selected events, allowing for fluctuations of the reconstruction algorithms while maintaining track quality. The differences between the full calibration sample selection and the employed loosened selection are listed in table \ref{tabSelection} and shown on Figure \ref{figTrackComparison}. Additionally, we present a comparison to the data calibration sample, which was created by applying the full PCHitsList selection on window cosmic tracks from the same artdaq data sample.
+To address these concerns, we have loosened the full calibration cuts to create a "buffer" around the selected events, allowing for fluctuations of the reconstruction algorithms while maintaining track quality. The differences between the full calibration cuts and the employed loosened cuts are listed in table \ref{tabSelection} and shown on Figure \ref{figTrackComparison}. Additionally, we present a comparison to the data calibration sample, which was created by applying the full PCHitsList selection on window cosmic tracks from the same artdaq data sample.
 \end{enumerate}
 
 \iffalse
@@ -181,31 +211,6 @@ The cuts are:
 \caption{Event selection for the data-based simulation (in green under Loose selection) and comparison to the Full calibration sample selection cuts in blue. The last two rows are not used for Test Beam, but are employed for the Near and Far detectors and should be studied before creating a data-based simulation for them.}
 \label{tabSelection}
 \end{table}
-
-\begin{figure}[!ht]
-\subfloat{
-\includegraphics[clip, width=\textwidth]{SelectionComparisonCosZCut_CosY.pdf}
-}
-
-\subfloat{
-\includegraphics[clip, width=\textwidth]{SelectionComparisonCosZCut_TotLength.pdf}
-}
-\caption{Impact of track start and maximum Cos$_Z$ cuts on the Test Beam data for the data-based simulation of cosmic muons. The track start cut has only negligible effect. The maximum Cos$_Z$ cut effectively removes sharp peaks in the total track length distribution and events perpendicular to the Y axis. These events are all parallel with the Z axes and are most likely leftover beam events, possibly from a beam halo. All of the distributions are made from the period 4 Test Beam data.}
-\label{figCosZSelectionComparison}
-\end{figure}
-
-\begin{figure}[!ht]
-\centering
-\subfloat{
-\includegraphics[clip, width=\textwidth]{TrackAlgComparison_StartX.pdf}
-}
-\vspace*{-6mm}
-\subfloat{
-\includegraphics[clip, width=\textwidth]{TrackAlgComparison_CosZ.pdf}
-}
-\caption{Difference between the tracks reconstructed with the break point fitter (BPF - used for data-based simulation) and with the window cosmictrack (WT - used for generating the calibration samples) algorithms. Both distributions are for the period 4 Test Beam data (with removed beam spill) without applying any selection. The BPF tracks have a hard cut-off at the detector edges, whereas the WT tracks are allowed to start beyond these limits. Also, the BPF tracks have a ragged distribution in Cos$_Z$, which is not present for WT tracks. It is not yet known where does this raggedness come from.}
-\label{figTrackComparison}
-\end{figure}
 
 \begin{figure}[!h]
 \subfloat{
@@ -287,7 +292,39 @@ Since we are simulating events not hits and each event can have a vastly differe
 For Test Beam events have on average 5 tricell hits (and 37 cell hits), so we need about $46\times 10^6$ events in our simulation calibration sample. The simulation and calibration selection processes have about 90\% efficiency. \textbf{So for Test Beam we need to simulate at least $51\times10^6$ events.} From period 4 we get 159,153,260 events with loose selection and 132,420,230 events with full selection. We decided to divide this sample in half to get a smaller simulation sample in the end.
 
 \subsubsection{Print the outputs}
-Write the pdg code, 4-momentum components and vertex positions into a hepevt-format text file which will then be fed to the TextFileGenerator.
+Write the pdg code, 4-momentum components and vertex positions into a HEPEVT-format \cite{HEPEVTFormat} text file which will then be fed to the \texttt{Text File Generator}.
+
+In the HEPEVT format each event is decribed in two lines. The header line contains the event number (which is ignored in ART) and a non-negative integer number of particles in the event. The second line contains 15 entries to describe each particle in the following order:
+\begin{enumerate}
+\item status code (set to 1 for any particle to be tracked)
+\item pdg code for this particle
+\item entry for the first mother of this particle in the event (0 means no mother)
+\item entry for the second mother of this particle in the event
+\item entry for the first daughter of this particle in the event
+\item entry for the second daughter of this particle in the event
+\item x component of the particle momentum 
+\item y component of the particle momentum
+\item z component of the particle momentum
+\item energy of the particle
+\item mass of the particle
+\item x position of the particle initial position (vertex)
+\item y position of the particle initial position (vertex)
+\item z position of the particle initial position (vertex)
+\item time of the particle production (relative to the beginning of the event)
+\end{enumerate}
+
+The momenta and masses are in GeV, positions in centimeters and time in nanoseconds.
+
+An example description of a single event with a single anit-muon, with momentum $P_{x,y,z}=\left(0.149320, -1.561071, 0.653841\right)\unit{GeV}$ and vertex position $V_{x,y,z}=\left(40.476409,121.044924,120.964778\right)\unit{cm}$. The mass is the same for all particles since we assume they are all muons, energy is calculated from the three momenta and the mass. The time of the particle production is chosen to be $50\unit{\mu s}$ for all particles.
+
+\begin{center}
+\begin{tabular}{|llllllr|}\hline
+26375015 & 1 & & & & &\\ \hline
+1 & -13 & 0 & 0 & 0 & 0 & (\textit{no newline})\\ 0.149320 & -1.561071 & 0.653841 & 1.702346 & 0.106 & & (\textit{no newline})\\ 40.476409 & 121.044924 & 120.964778 & 50000 & & &\\\hline
+\end{tabular}
+\end{center}
+
+More details can be found in the comment block of the Text File Generator module in \newline \href{https://github.com/novaexperiment/novasoft/blob/main/EventGenerator/TextFileGen\_module.cc}{novasoft/EventGenerator/TextFileGen\_module.cc}.
 
 \subsection{Submitting the simulation jobs}\label{secGenerator}
 \begin{enumerate}
