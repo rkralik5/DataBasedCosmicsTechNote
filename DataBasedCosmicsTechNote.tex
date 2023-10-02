@@ -242,11 +242,11 @@ During the selection process, we determine whether the muon is stopping inside t
 
 \FloatBarrier
 \subsection{Energy correction, charge assignment and smearing}\label{secPython}
-Once we have the TTree with kinematic information for the selected events we run a python script \texttt{CosmicStudies/GenerateHEPEVTFromROOT.py}. This script performs several tasks, including correcting energies of the through-going muons, assigning a charge to each muon, applies smearing and converting the information into a \texttt{HEPEVT} format (see section \ref{secHEPEVTFormat}), which is required by the \texttt{Text File Generator}.
+Once we have the TTree with kinematic information for the selected events we run a python script \texttt{CosmicStudies/GenerateHEPEVTFromROOT.py}. This script performs several tasks, including correcting energies of the through-going muons, assigning a charge to each muon, and smearing and converting the information into a \texttt{HEPEVT} format (see section \ref{secHEPEVTFormat}), which is required by the \texttt{Text File Generator}.
 
 To load the TTree ntuples into a dictionary of numpy arrays, the script utilizes the \texttt{uproot} library. If the machine being used does not have \texttt{uproot} installed, we can use \texttt{pip install --user uproot} to install the library.
 
-During a detector systematics planning session in Summer 2021, Mark Messier and Teresa Lackey presented an overview and a strategy for data-based simulation of cosmic muons for calibration \cite{NOVA-doc-51327-v3}. They discussed potential improvements to the energy estimation of through-going muons, charge assignment based on energy distribution and a plan to implement data-based simulation in the Near and Far detectors. Worked discussed in this section directly follows this discussion.
+During a detector systematics planning session in Summer 2021, Mark Messier and Teresa Lackey presented an overview and a strategy for data-based simulation of cosmic muons for calibration \cite{NOVA-doc-51327-v3}. They discussed potential improvements to the energy estimation of through-going muons, charge assignment based on energy distribution and a plan to implement data-based simulation in the Near and Far detectors. Work discussed in this section directly follows this discussion.
 
 To run the python script do:
 \begin{lstlisting}[frame=single,language=bash]
@@ -262,7 +262,7 @@ Through-going muons do not deposit all of their energy inside the detector. From
 \end{equation}
 where $E_R$ is the reconstructed energy from the Break Point Fitter. $E_C$ is the critical energy chosen to be 300 GeV, as we do not expect muons with higher energies to be selected due to large showers along their paths.
 
-We use this corrected initial energy for all muons that do not stop inside the detector identified during selection, as described in section \ref{secSelection}. Plot \ref{figEnergyScaling} shows the corrected energy distribution of our selected events and demonstrates that the choice of the critical energy does not significantly change the correction. 
+We use this corrected initial energy for all muons that do not stop inside the detector (as identified during selection), as described in section \ref{secSelection}. Plot \ref{figEnergyScaling} shows the corrected energy distribution of our selected events and demonstrates that the choice of the critical energy does not significantly change the correction. 
 
 \begin{figure}[hbtp]
 \centering
@@ -282,9 +282,11 @@ The reconstructed data is influenced by the detector structure, reconstruction e
 \begin{itemize}
 \item total momentum within 2\%,
 \item azimuthal angle uniformly,
-\item polar angle within 4mrad,
+\item polar angle within 4~mrad,
 \item and the X/Y and Z vertex positions within the width or depth of the cell respectively.
 \end{itemize}
+
+The size of the smearing has been decided as the best estimate of variations of these variables for cosmic muons.
 
 \subsubsection{Charge assignment}
 We need to tell the \texttt{Text File Generator} whether to simulate a muon or an anti-muon. However we do not reconstruct the charge of the muons, so we have to randomly assign it based on a statistical distribution from external measurements \cite{NOVA-doc-51327-v3}:
@@ -299,7 +301,7 @@ P_+ \simeq 0.539 + \frac{x}{34.5}-\left(\frac{x}{9.48}\right)^2 + \left(\frac{x}
 where $x$ is the logarithm of total momentum in $\unit{GeV}$.
 
 \subsubsection{Number of events to simulate}\label{secNumEvents}
-The \texttt{GenerateHEPEVTFromROOT.py} script offers options to adjust the statistics of the generated simulation. We can specify the number of iterations (niter) to loop each data event, or we can choose to skip events (stride). We want to avoid unnecessary computational and memory requirements by simulating too many events, but also require enough events for a successful calibration. Calibration is successful, when there is sufficient number of through-going muons in each cell, view, and fibre brightness bin, so that each attenuation fit has a $\chi^2<0.2$. This is an external condition set for NOvA calibration.
+The \texttt{GenerateHEPEVTFromROOT.py} script offers options to adjust the statistics of the generated simulation. We can specify the number of iterations (niter) to loop each data event, or we can choose to skip events (stride). We want to avoid unnecessary computational and memory requirements by simulating too many events, but also require enough events for a successful calibration. Calibration is successful when there is sufficient number of through-going muons in each cell, view, and fibre brightness bin, so that each attenuation fit has a $\chi^2<0.2$. This is an external condition set for NOvA calibration.
 
 Here are our considerations, based purely on observation and experience. The intention is solely to help the reader avoid fine tuning the statistics when making a simulation of their own. Laid back reader can skip this section.
 
@@ -341,14 +343,16 @@ In the HEPEVT format each event is described in two lines. The header line conta
 
 The momenta and masses are in GeV, positions in centimetres and time in nanoseconds.
 
-Here is an example description for a single anti-muon, with momentum $P_{x,y,z}=\left(0.15, -1.56, 0.65\right)\unit{GeV}$ and vertex position $V_{x,y,z}=\left(40.48,121.04,120.96\right)\unit{cm}$. The energy is calculated from the momentum and the mass. The time of the particle production is chosen to be $50\unit{\mu s}$  and is same for all particles. The second line of the description is divided into three rows in the table below to fit on this page, but needs to be in a single line inside the text file.
-
-\begin{center}
+Table \ref{tabSelection} shows an example description for a single anti-muon particle, with momentum $P_{x,y,z}=\left(0.15, -1.56, 0.65\right)\unit{GeV}$ and vertex position $V_{x,y,z}=\left(40.48,121.04,120.96\right)\unit{cm}$. The energy is calculated from the momentum and the mass. The time of the particle production is chosen to be $50\unit{\mu s}$  and is same for all particles. The second line of the description is divided into three rows in the table below to fit on this page, but needs to be in a single line inside the text file.
+\begin{table}
+\centering
 \begin{tabular}{llllllr}\hline
 26375015 & 1 & & & & &\\ \hline
 1 & -13 & 0 & 0 & 0 & 0 & (\textit{no newline})\\ 0.149320 & -1.561071 & 0.653841 & 1.702346 & 0.106 & & (\textit{no newline})\\ 40.476409 & 121.044924 & 120.964778 & 50000 & & &\\\hline
 \end{tabular}
-\end{center}
+\caption{Example HEPEVT-style kinematic description of a single anti-muon particle.}
+\label{tabHEPEVTOutput}
+\end{table}
 
 More details can be found in the comment block of the Text File Generator module in \newline \href{https://github.com/novaexperiment/novasoft/blob/main/EventGenerator/TextFileGen\_module.cc}{novasoft/EventGenerator/TextFileGen\_module.cc}.
 
@@ -420,7 +424,7 @@ To validate whether our simulation is working as expected, we
 
 For the data-simulation comparisons we use the events from the calibration (pclist) samples, which are equivalent to the Window cosmic tracks with full calibration cuts from the CosmicGenAna module, as described in the selection section \ref{secSelection}. We are expecting the new simulation to be similar to the data calibration sample, without a bias from the original data used for the simulation.
 
-Figures \ref{figDataMCComparison_cosXcosY} and \ref{figDataMCComparison_cosZtotLength} show, that the angular distributions of the new simulation (pink lines) are almost the same as distributions of Break Point Fitter tracks with full calibration cuts (blue dashed lines). This means that loosening up the calibration cuts (green dashed lines) did not help as expected with compensating for the underlying differences between the Break Point Fitter tracks and the Window cosmic tracks. This can also be seen on the total track length distribution on figure \ref{figDataMCComparison_cosZtotLength}. This is disappointing, but the distributions of the new simulation look reasonable and are close enough to the data, that we've decided to proceed with this simulation and use it in the Test Beam calibration. It is unlikely that we could mitigate these differences by changing the selection even more.
+Figures \ref{figDataMCComparison_cosXcosY} and \ref{figDataMCComparison_cosZtotLength} show that the angular distributions of the new simulation (pink lines) are almost the same as distributions of Break Point Fitter tracks with full calibration cuts (blue dashed lines). This means that loosening up the calibration cuts (green dashed lines) did not help as expected with compensating for the underlying differences between the Break Point Fitter tracks and the Window cosmic tracks. This can also be seen on the total track length distribution on figure \ref{figDataMCComparison_cosZtotLength}. This is disappointing, but the distributions of the new simulation look reasonable and are close enough to the data, that we've decided to proceed with this simulation and use it in the Test Beam calibration. It is unlikely that we could mitigate these differences by changing the selection even more.
 
 \begin{figure}[!ht]
 \subfloat{
@@ -446,7 +450,7 @@ Figures \ref{figDataMCComparison_cosXcosY} and \ref{figDataMCComparison_cosZtotL
 \label{figDataMCComparison_cosZtotLength}
 \end{figure}
 
-The start of track comparison between data and simulation on figures \ref{figDataMCComparison_startXstartY} and \ref{figDataMCComparison_startZ} show that there is fewer events that start at the edge of the detector. This is likely the result of the event smearing.
+The start of track comparison between data and simulation on figures \ref{figDataMCComparison_startXstartY} and \ref{figDataMCComparison_startZ} show that there are fewer events that start at the edge of the detector. This is likely the result of the event smearing.
 
 \begin{figure}[!ht]
 \subfloat{
