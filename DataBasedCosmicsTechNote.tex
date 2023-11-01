@@ -96,10 +96,10 @@ A step-by-step summary is presented in the box below and can also be found on th
 \item Generate FHiCL files each sourcing a different text file \\\texttt{CreateFclsForSimulation.sh TextFileGenjob\_template.fcl}\\ \hspace*{58mm}\texttt{inDir outDir};
 \item Make a SAM definition from the FHiCL files with \texttt{sam\_add\_dataset};
 \item Include all the text files into \texttt{TextFileGen.cfg} with \texttt{--inputfile};
-\item Submit \texttt{TextFileGen.cfg};
-\item Move the newly created simulation artdaq files to a persistent area, declare them to SAM and create a definition;
+\item Submit \texttt{TextFileGen.cfg} to the grid;
+\item Move the newly created simulation artdaq files to a persistent area, declare them to SAM, and create a definition;
 \item Generate the calibration files (pclist/pcliststop);
-\item Move the results into a persistent location, declare to SAM and make definitions.
+\item Move the results into a persistent location, declare them to SAM, and make definitions.
 \end{enumerate}
 }}
 
