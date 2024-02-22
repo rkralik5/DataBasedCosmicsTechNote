@@ -13,6 +13,7 @@
 \usepackage{amsmath, amsthm, amssymb,amsfonts}
 \usepackage{float}
 \usepackage{placeins}  % for FloatBarrier
+\usepackage{authblk} % To add authors' affiliations
 
 %%% Code to enter C++ code
 \usepackage{listings}
@@ -38,7 +39,8 @@
 
 \usepackage{xspace}
 
-\author{Róbert Králik\\\small{University of Sussex}}
+\author[1]{Róbert Králik}
+\affil[1]{University of Sussex, Brighton, UK}
 \title{\textbf{Data-based simulation of cosmic muons (not only) for calibration\\ \vspace*{5mm}
 \Large{Technical Note}}}
 \date{\today}
@@ -78,11 +80,11 @@ It is necessary to choose a data sample that represents the detector in a fault-
 
 %The first iteration also used Test Beam data from period 2 as an input, which include some FEB issues as well as underfilled cells 31 and 63 for all horizontal planes. This can negatively affect the resulting simulation in a non-trivial way. To avoid this for the second iteration, Robert used period 4 Test Beam data samples, which don't have the aforementioned effects. For details about the various conditions of the Test Beam detector and their effect on calibration and simulation see the Test Beam calibration technote (cite doc-db).
 
-Once we have a selected data sample, we use the \texttt{cosmicgenanajob} ART job to apply a series of filtering, reconstruction, and selection steps to obtain a ROOT TTree with vertex positions and 4-momenta of selected good quality cosmic muon events. This is outlined in section \ref{secCosmicGenAna} of this document.
+Once we have a selected data sample, we use the \texttt{cosmicgenanajob} ART job to apply a series of filtering, reconstruction, and selection steps to obtain a ROOT TTree with vertex positions and 4-momenta of selected good quality cosmic muon events. This is outlined in Sec. \ref{secCosmicGenAna} of this document.
 
-Subsequently, the reconstructed information of each event is processed by a Python script \texttt{GenerateHEPEVTFromROOT.py}. This script corrects the 4-momenta of the through-going muons to account for the missing energy that was not deposited in the detector. Furthermore, it assigns a charge to each cosmic muon based on a statistical distribution, smears the kinematic information to reduce bias from the input data and prints the \texttt{HEPEVT}-styled \cite{HEPEVTFormat} description of each event into a text file. The details of this process are elaborated in section \ref{secPython}.
+Subsequently, the reconstructed information of each event is processed by a Python script \texttt{GenerateHEPEVTFromROOT.py}. This script corrects the 4-momenta of the through-going muons to account for the missing energy that was not deposited in the detector. Furthermore, it assigns a charge to each cosmic muon based on a statistical distribution, smears the kinematic information to reduce bias from the input data and prints the \texttt{HEPEVT}-styled \cite{HEPEVTFormat} description of each event into a text file. The details of this process are elaborated in Sec. \ref{secPython}.
 
-The text file is then passed to the \texttt{Text File Generator}, which employs the information as a seed for a geant4-based \cite{GEANT4} detector simulation. By incorporating additional simulation and reconstruction steps, an artdaq-stage simulation sample of cosmic muons is generated. To create calibration samples for stopping and through-going cosmic muons, we apply the same reconstruction and selection criteria as for any data sample. Further details are provided in section \ref{secGenerator}. 
+The text file is then passed to the \texttt{Text File Generator}, which employs the information as a seed for a geant4-based \cite{GEANT4} detector simulation. By incorporating additional simulation and reconstruction steps, an artdaq-stage simulation sample of cosmic muons is generated. To create calibration samples for stopping and through-going cosmic muons, we apply the same reconstruction and selection criteria as for any data sample. Further details are provided in Sec. \ref{secGenerator}. 
 
 A step-by-step summary is presented in the box below and can also be found on the \href{https://cdcvs.fnal.gov/redmine/projects/novaart/wiki/DataDriven\_Cosmics}{DataDriven Cosmics Generation redmine wiki page}.
 
@@ -112,7 +114,7 @@ Additionally, we want the simulation to primarily consist of events that will ma
 We use a single ART job located in \texttt{CosmicStudies/cosmicgenanajob.fcl} to filter, reconstruct, and select the desired events, which are then written to a ROOT TTree. The details of each step are described below.
 
 \subsubsection{Remove Beam Spills}
-The first step is to remove beam spill events using the \texttt{RemoveBeamSpills.fcl} job for the Near and Far Detectors, or \texttt{RemoveTBSpills.fcl} for the Test Beam detector. This is done based on the event time relative to the time of the beam spill. For Test Beam the beam spill is 4.2 seconds long and we remove all events within a 5 seconds window from the start of the beam spill, as shown on figure \ref{figRemoveTBSpills}. This should leave us with mostly cosmic events.
+The first step is to remove beam spill events using the \texttt{RemoveBeamSpills.fcl} job for the Near and Far Detectors, or \texttt{RemoveTBSpills.fcl} for the Test Beam detector. This is done based on the event time relative to the time of the beam spill. For Test Beam the beam spill is 4.2 seconds long and we remove all events within a 5 seconds window from the start of the beam spill, as shown on Fig. \ref{figRemoveTBSpills}. This should leave us with mostly cosmic events.
 
 \begin{figure}[hbtp]
 \centering
@@ -136,10 +138,10 @@ The first three steps are identical to the full reconstruction applied to get th
 \subsubsection{Selection}\label{secSelection}
 After the reconstruction process, we proceed to select events based on their slice and \textbf{BreakPointFitter (BPF) track} properties, saving them in a Root TTree. This step is done using the\\ \texttt{CosmicStudies/CosmicGenAna} module.
 
-To select an event, the following conditions must be met (table \ref{tabSelection} provides an overview of all cuts and their corresponding values):
+To select an event, the following conditions must be met (Tab. \ref{tabSelection} provides an overview of all cuts and their corresponding values):
 \begin{enumerate}
 \item We only use successfully reconstructed 3D BPF tracks with the muon assumption \cite{NOVA-doc-32455-v1};
-\item As we aim to select cosmic events originating outside the detector, we apply a cut based on the distance of each track's start from the Top/Front/Back/Sides of the detector. This cut has a negligible impact on the BPF tracks, as indicated by the minimal difference between the red and the dotted azure lines in Figure \ref{figCosZSelectionComparison};
+\item As we aim to select cosmic events originating outside the detector, we apply a cut based on the distance of each track's start from the Top/Front/Back/Sides of the detector. This cut has a negligible impact on the BPF tracks, as indicated by the minimal difference between the red and the dotted azure lines in Fig. \ref{figCosZSelectionComparison};
 
 \begin{figure}[!ht]
 \subfloat{
@@ -157,14 +159,14 @@ To select an event, the following conditions must be met (table \ref{tabSelectio
 
 \item To ensure that only events contributing to the final calibration sample are simulated, we use a selection based on cuts from the Calibration/PCHitsList module. This module is used for both data and simulation to create the calibration samples. Let's call these cuts the \textbf{calibration cuts}. However, there are two caveats we need to consider:
 \begin{enumerate}
-\item First, to create calibration samples, we apply selection to tracks from the \textbf{Window cosmic track} algorithm instead of the Break Point Fitter algorithm, which yield different distributions as depicted on Figure \ref{figTrackComparison}. Notably, the BPF tracks have a hard cut-off at the detector edges, whereas the Window cosmic tracks are allowed to start beyond these limits. Also, the BPF tracks have a rugged distribution in Cos$_Z$, which is not present for Window cosmic tracks. This is likely caused by the detector structure, as shown on figure \ref{figBPFPeaks}, but it is not clear how. We concluded that he rugged shape does not have any impact on the resulting simulation. Given these differences between the tracking algorithms, applying the calibration cuts on BPF tracks could mistakenly remove events that would pass the same selection when applied to the Window cosmic tracks.
+\item First, to create calibration samples, we apply selection to tracks from the \textbf{Window cosmic track} algorithm instead of the Break Point Fitter algorithm, which yield different distributions as depicted on Fig. \ref{figTrackComparison}. Notably, the BPF tracks have a hard cut-off at the detector edges, whereas the Window cosmic tracks are allowed to start beyond these limits. Also, the BPF tracks have a rugged distribution in Cos$_Z$, which is not present for Window cosmic tracks. This is likely caused by the detector structure, as shown on Fig. \ref{figBPFPeaks}, but it is not clear how. We concluded that he rugged shape does not have any impact on the resulting simulation. Given these differences between the tracking algorithms, applying the calibration cuts on BPF tracks could mistakenly remove events that would pass the same selection when applied to the Window cosmic tracks.
 
 \begin{figure}[!ht]
 \centering
 \subfloat{
 \includegraphics[clip, width=\textwidth]{TrackAlgComparison_StartX.pdf}
 }
-\vspace*{-6mm}
+
 \subfloat{
 \includegraphics[clip, width=\textwidth]{TrackAlgComparison_CosZ.pdf}
 }
@@ -177,7 +179,7 @@ To select an event, the following conditions must be met (table \ref{tabSelectio
 \subfloat{
 \includegraphics[clip, width=\textwidth]{BPFPeaks_BPFTracks_dcosz_TotLength.pdf}
 }
-\vspace*{-6mm}
+\vspace*{-4mm}
 \subfloat{
 \includegraphics[clip, width=\textwidth]{BPFPeaks_WTTracks_dcosz_TotLength.pdf}
 }
@@ -188,7 +190,7 @@ To select an event, the following conditions must be met (table \ref{tabSelectio
 \item Second, each reconstruction algorithm has intrinsic deficiencies that can lead to misreconstructions. Applying the full calibration cuts may remove misreconstructed events that should have been included in the simulation, introducing a bias.
 \end{enumerate}
 
-To address these concerns, we have loosened the full calibration cuts to create a "buffer" around the selected events, allowing for fluctuations of the reconstruction algorithms while maintaining track quality. The differences between the full calibration cuts and the employed loosened calibration cuts applied to the BPF tracks are listed in table \ref{tabSelection} and shown on figure \ref{figTrackComparison}. There we also show the data calibration sample, which was created by applying the full calibration cuts on window cosmic tracks from the same artdaq data sample.
+To address these concerns, we have loosened the full calibration cuts to create a "buffer" around the selected events, allowing for fluctuations of the reconstruction algorithms while maintaining track quality. The differences between the full calibration cuts and the employed loosened calibration cuts applied to the BPF tracks are listed in Tab. \ref{tabSelection} and shown on Fig. \ref{figTrackComparison}. There we also show the data calibration sample, which was created by applying the full calibration cuts on window cosmic tracks from the same artdaq data sample.
 \end{enumerate}
 
 \iffalse
@@ -231,7 +233,7 @@ The cuts are:
 \subfloat{
 \includegraphics[clip, width=\textwidth]{SelectionComparisonPCHitsListCut_CosZ.pdf}
 }
-\vspace*{-6mm}
+\vspace*{-4mm}
 \subfloat{
 \includegraphics[clip, width=\textwidth]{SelectionComparisonPCHitsListCut_TotLength.pdf}
 }
@@ -239,11 +241,11 @@ The cuts are:
 \label{figPCHitsListCutsComparison}
 \end{figure}
 
-During the selection process, we determine whether the muon is stopping inside the detector or passing through, based on the reconstructed track's end position\footnote{For Test Beam we say it is a stopping muon if its track ends at least 20~cm from any edge of the detector. For the far and near detector this is 50~cm. This value was chosen by Kevin Mulder \cite{NOVA-doc-39244-v1} as 50~cm removed too many cosmic events from the Test Beam detector.}. This information assists in correcting the energy of through-going muons, as outlined in section \ref{secPython}.
+During the selection process, we determine whether the muon is stopping inside the detector or passing through, based on the reconstructed track's end position\footnote{For Test Beam we say it is a stopping muon if its track ends at least 20~cm from any edge of the detector. For the far and near detector this is 50~cm. This value was chosen by Kevin Mulder \cite{NOVA-doc-39244-v1} as 50~cm removed too many cosmic events from the Test Beam detector.}. This information assists in correcting the energy of through-going muons, as outlined in Sec. \ref{secPython}.
 
 \FloatBarrier
 \subsection{Energy correction, charge assignment and smearing}\label{secPython}
-Once we have the TTree with kinematic information for the selected events we run a python script \texttt{CosmicStudies/GenerateHEPEVTFromROOT.py}. This script performs several tasks, including correcting energies of the through-going muons, assigning a charge to each muon, and smearing and converting the information into a \texttt{HEPEVT} format (see section \ref{secHEPEVTFormat}), which is required by the \texttt{Text File Generator}.
+Once we have the TTree with kinematic information for the selected events we run a python script \texttt{CosmicStudies/GenerateHEPEVTFromROOT.py}. This script performs several tasks, including correcting energies of the through-going muons, assigning a charge to each muon, and smearing and converting the information into a \texttt{HEPEVT} format (see Sec. \ref{secHEPEVTFormat}), which is required by the \texttt{Text File Generator}.
 
 To load the TTree ntuples into a dictionary of numpy arrays, the script utilizes the \texttt{uproot} library. If the machine being used does not have \texttt{uproot} installed, we can use \texttt{pip install --user uproot} to install the library.
 
@@ -263,7 +265,7 @@ Through-going muons do not deposit all of their energy inside the detector. From
 \end{equation}
 where $E_R$ is the reconstructed energy from the Break Point Fitter. $E_C$ is the critical energy chosen to be 300 GeV, as we do not expect muons with higher energies to be selected due to large showers along their paths.
 
-We use this corrected initial energy for all muons that do not stop inside the detector (as identified during selection), as described in section \ref{secSelection}. Plot \ref{figEnergyScaling} shows the corrected energy distribution of our selected events and demonstrates that the choice of the critical energy does not significantly change the correction. 
+We use this corrected initial energy for all muons that do not stop inside the detector (as identified during selection), as described in Sec. \ref{secSelection}. Plot \ref{figEnergyScaling} shows the corrected energy distribution of our selected events and demonstrates that the choice of the critical energy does not significantly change the correction. 
 
 \begin{figure}[hbtp]
 \centering
@@ -306,7 +308,7 @@ The \texttt{GenerateHEPEVTFromROOT.py} script offers options to adjust the stati
 
 Here are our considerations, based purely on observation and experience. The intention is solely to help the reader avoid fine tuning the statistics when making a simulation of their own. Laid back reader can skip this section.
 
-Attenuation fits require approximately 50,000 calibration (tricell) hits per cell, view, and brightness bin. This figure remains the same for the near and far detectors, since the binning for position inside a cell (w) is identical for all detectors (100 bins per attenuation profile). However, we must consider the discrepancy between horizontal and vertical cells. Vertical cells, parallel to cosmic muons, receive approximately 5 times fewer hits than horizontal cells. To adequately populate the vertical cells, we multiply the original number (50,000) by 6 (1 for horizontal + 5 for vertical view), then by the number of fibre brightness bins (12). Finally, we multiply this by the number of cells: 390 for FD, 100 for ND, and 64 for TB. Thus, the minimum total tricell hits required is calculated as:
+Attenuation fits require approximately 50,000 calibration (tricell) hits per cell, view, and brightness bin. This Fig. remains the same for the near and far detectors, since the binning for position inside a cell (w) is identical for all detectors (100 bins per attenuation profile). However, we must consider the discrepancy between horizontal and vertical cells. Vertical cells, parallel to cosmic muons, receive approximately 5 times fewer hits than horizontal cells. To adequately populate the vertical cells, we multiply the original number (50,000) by 6 (1 for horizontal + 5 for vertical view), then by the number of fibre brightness bins (12). Finally, we multiply this by the number of cells: 390 for FD, 100 for ND, and 64 for TB. Thus, the minimum total tricell hits required is calculated as:
 \begin{center}
 \begin{tabular}{lr}
 Detector & $50,000\times 6\times 12\times$NCells\\\hline
@@ -423,9 +425,9 @@ To validate whether our simulation is working as expected, we
 \item use the new simulation (specifically the artdaq-stage sample) as "fake data" and feed it into the exact same simulation process to create a "re-simulation" sample.
 \end{enumerate}
 
-For the data-simulation comparisons we use the events from the calibration (pclist) samples, which are equivalent to the Window cosmic tracks with full calibration cuts from the CosmicGenAna module, as described in the selection section \ref{secSelection}. We are expecting the new simulation to be similar to the data calibration sample, without a bias from the original data used for the simulation.
+For the data-simulation comparisons we use the events from the calibration (pclist) samples, which are equivalent to the Window cosmic tracks with full calibration cuts from the CosmicGenAna module, as described in the selection Sec. \ref{secSelection}. We are expecting the new simulation to be similar to the data calibration sample, without a bias from the original data used for the simulation.
 
-Figures \ref{figDataMCComparison_cosXcosY} and \ref{figDataMCComparison_cosZtotLength} show that the angular distributions of the new simulation (pink lines) are almost the same as distributions of Break Point Fitter tracks with full calibration cuts (blue dashed lines). This means that loosening up the calibration cuts (green dashed lines) did not help as expected with compensating for the underlying differences between the Break Point Fitter tracks and the Window cosmic tracks. This can also be seen on the total track length distribution on figure \ref{figDataMCComparison_cosZtotLength}. This is disappointing, but the distributions of the new simulation look reasonable and are close enough to the data, that we've decided to proceed with this simulation and use it in the Test Beam calibration. It is unlikely that we could mitigate these differences by changing the selection even more.
+Figures \ref{figDataMCComparison_cosXcosY} and \ref{figDataMCComparison_cosZtotLength} show that the angular distributions of the new simulation (pink lines) are almost the same as distributions of Break Point Fitter tracks with full calibration cuts (blue dashed lines). This means that loosening up the calibration cuts (green dashed lines) did not help as expected with compensating for the underlying differences between the Break Point Fitter tracks and the Window cosmic tracks. This can also be seen on the total track length distribution on Fig. \ref{figDataMCComparison_cosZtotLength}. This is disappointing, but the distributions of the new simulation look reasonable and are close enough to the data, that we've decided to proceed with this simulation and use it in the Test Beam calibration. It is unlikely that we could mitigate these differences by changing the selection even more.
 
 \begin{figure}[!ht]
 \subfloat{
@@ -451,7 +453,7 @@ Figures \ref{figDataMCComparison_cosXcosY} and \ref{figDataMCComparison_cosZtotL
 \label{figDataMCComparison_cosZtotLength}
 \end{figure}
 
-The start of track comparison between data and simulation on figures \ref{figDataMCComparison_startXstartY} and \ref{figDataMCComparison_startZ} show that there are fewer events that start at the edge of the detector. This is likely the result of the event smearing.
+The start of track comparison between data and simulation on Fig. \ref{figDataMCComparison_startXstartY} and \ref{figDataMCComparison_startZ} show that there are fewer events that start at the edge of the detector. This is likely the result of the event smearing.
 
 \begin{figure}[!ht]
 \subfloat{
@@ -471,7 +473,7 @@ The start of track comparison between data and simulation on figures \ref{figDat
 \label{figDataMCComparison_startZ}
 \end{figure}
 
-Adding the distributions for the re-simulation calibration sample shown on figure \ref{figSimVersionComparison}, we can see that the tracks' starts are systematically shifted even more towards the inside of the detector. This would support the theory that this effect is caused by the smearing of the events. This is also likely directly related to the loss of events with longer track lengths as shown on figure \ref{figSimVersionComparison}. If tracks start a few centimetres later in the detector their tracks would get shorter by the same amount.
+Adding the distributions for the re-simulation calibration sample shown on Fig. \ref{figSimVersionComparison}, we can see that the tracks' starts are systematically shifted even more towards the inside of the detector. This would support the theory that this effect is caused by the smearing of the events. This is also likely directly related to the loss of events with longer track lengths as shown on Fig. \ref{figSimVersionComparison}. If tracks start a few centimetres later in the detector their tracks would get shorter by the same amount.
 
 \begin{figure}[!ht]
 \subfloat{
